@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>个人密码管理</title>
+    <!-- <link rel="stylesheet" href="src/bootstrap.min.css">
+    <script src="src/popper.min.js"></script>    
+    <script src="src/jquery.min.js"></script>
+    <script src="src/bootstrap.min.js"></script> -->
+    <!-- <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <script type="text/javascript" src="http://mumu.biz/resource/websrc/js/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.bootcss.com/bootstrap/4.0.0/js/bootstrap.min.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css"
+        integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.min.js"
+        integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
+        crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <style>
+        .search {
+            height: 30px;
+            line-height: 30px;
+            box-sizing: border-box;
+            padding: 0 15px 0 30px;
+            border: 1px solid #e3e3e3;
+            color: #2c3e50;
+            outline: none;
+            border-radius: 15px;
+            margin-right: 10px;
+            transition: border-color 0.2s ease;
+            background: #fff url("search.png") 8px 5px no-repeat;
+            background-size: 20px;
+            vertical-align: middle !important;
+        }
+
+        .search:focus {
+            border-color: #42b983;
+        }
+
+        .icobox {
+            height: 25px;
+            width: auto;
+        }
+
+        .input {
+            height: 25px;
+            width: auto;
+        }
+
+        .edit-layer {
+            position: fixed;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            /* z-index: 19891014; */
+            text-align: center;
+        }
+
+        .edit-layer-body {
+            /* width: 50%; */
+            /* height: 50%; */
+            position: relative;
+            display: inline-block;
+            background-color: #333333;
+            box-sizing: border-box;
+            text-align: center;
+            margin-top: 10%;
+        }
+
+        .edit-layer-item {
+            margin: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- <input type="text" class="search" id="value" placeholder="输入账号"> -->
+        <div id="app">
+            <search-box v-on:up-date="update"></search-box>
+            <input placeholder="请输入使用该账号的地方" v-model="place">
+            <input placeholder="请输入用户名" v-model="username">
+            <input placeholder="请输入密码" v-model="password">
+            <button @click="add">确定</button>
+            <button @click="del">删除</button>
+            <edit-layer v-on:yes="handleEdit" v-on:no="editshow = false" :obj="obj" v-if="editshow"></edit-layer>
+            <table class=" table">
+                <thead>
+                    <tr>
+                        <th scope="col"><input type="checkbox" @click="handleAllCheck" v-model="allcheck"></th>
+                        <th scope="col">#</th>
+                        <th scope="col">place</th>
+                        <th scope="col">account</th>
+                        <th scope="col">password</th>
+                    </tr>
+                </thead>
+                <tbody v-for="(item, i) in items">
+                    <tr v-if="item.id > 0" @dblclick="showEdit(item)">
+                        <th scope="row"><input type="checkbox" v-model="checkedrowset" :value="i" @click="handleClick">
+                        </th>
+                        <td>{{item.id}}</td>
+                        <td>{{item.place}}</td>
+                        <td>{{item.username}}</td>
+                        <td>{{item.password}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script>
+        var db = openDatabase('mydb', '1.0', 'Test DB', 2 * 1024 * 1024);
+
+        Vue.component('search-box', {
+            props: ['upitems'],
+            data: function () {
+                return {
+                    v: '',
+                    its: this.items
+                }
+            },
+            template: '<input type="text" v-model="v" class="search" id="value" placeholder="输入账号" @keyup.enter="get">',
+            methods: {
+                get: function (e) {
+                    console.log('aaaaaaaaaa')
+                    this.$emit('up-date', this.v)
+                }
+            },
+        });
+
+        Vue.component('edit-layer', {
+            props: ['obj'],
+            data: function () {
+                return {
+                    id: this.obj.id,
+                    place: this.obj.place,
+                    username: this.obj.username,
+                    password: this.obj.password
+                }
+            },
+            template: '<div class="edit-layer"><div class="edit-layer-body"><input placeholder="请输入使用该账号的地方" v-model="place"><input placeholder="请输入用户名" v-model="username"><input placeholder="请输入密码" v-model="password"><button @click="yes">确认</button><button @click="no">取消</button></div></div>',
+            methods: {
+                yes: function () {
+                    this.$emit('yes', {
+                        id: this.id,
+                        place: this.place,
+                        username: this.username,
+                        password: this.password
+                    })
+                },
+                no: function () {
+                    this.$emit('no')
+                }
+            },
+        });
+
+        var app = new Vue({
+            el: '#app',
+            data: {
+                items: null,
+                place: '',
+                username: '',
+                password: '',
+                allcheck: false,
+                checkedset: [],
+                checkedrowset: [],
+                lastcheckval: -1,
+                obj: {
+                    id: -1,
+                    place: 'a',
+                    username: 'b',
+                    password: 'c',
+                },
+                editshow: false
+            },
+            // components: {
+            //     'search-box': SearchBox,
+            // },
+            watch: {
+                checkedrowset: {
+                    handler: function (val, oldVal) {
+                        if (this.checkedrowset.length === this.items.length) {
+                            this.allcheck = true;
+                        } else {
+                            this.allcheck = false;
+                        }
+                        console.log("watch checkedrowset")
+                    },
+                    deep: true
+                },
+            },
+            methods: {
+                update: function (v) {
+
+                },
+                add: function () {
+                    // alert(this.place + this.username + this.password);
+                    var sql = 'INSERT INTO SERCET (place, username, password) VALUES ("' + this.place + '", "' + this.username + '", "' + this.password + '")';
+                    db.transaction(function (tx) {
+                        tx.executeSql(sql);
+                        location.reload();
+                    })
+                },
+                handleClick: function (ev) {
+                    var that = this;
+                    setTimeout(function () {
+                        console.log('this.checkedset', ev.target.checked, that.checkedset.length, that.checkedset, that.lastcheckval)
+                        // if (!ev.target.checked) {
+                        //     if (that.checkedset.length == 1) {
+                        //         that.lastcheckval = that.checkedset[0];
+                        //     }
+                        //     if (that.checkedset.length == 0) {
+                        //         that.checkedset.push(that.lastcheckval)
+                        //     }
+                        // }
+                    }, 1)
+                },
+                handleAllCheck: function () {
+                    if (this.allcheck) {
+                        this.checkedset = []
+                        this.checkedrowset = []
+                    } else {
+                        for (let i = 0; i < this.items.length; i++) {
+                            if (!this.checkedrowset.includes(i)) {
+                                this.checkedrowset.push(i)
+                            }
+                            var element = this.items[i]
+                            if (!this.checkedset.includes(element.id)) {
+                                this.checkedset.push(element.id)
+                            }
+                        }
+                    }
+                    this.allcheck = !this.allcheck
+                    console.log(this.checkedset)
+                    console.log(this.checkedrowset)
+                },
+                del: function () {
+                    this.checkedrowset.forEach(element => {
+                        var id = this.items[element].id;
+                        console.log('del id = ' + id)
+                        var sql = 'DELETE FROM SERCET WHERE id = ' + id;
+                        db.transaction(function (tx) {
+                            tx.executeSql(sql);
+                        })
+                        this.items[element].id = -1
+                    })
+                    this.checkedrowset = []
+                },
+                handleEdit: function (v) {
+                    var sql = 'UPDATE SERCET SET place = "' + v.place + '", username = "' + v.username + '", password = "' + v.password + '" WHERE id = ' + v.id;
+                    console.log(v, sql)
+                    db.transaction(function (tx) {
+                        tx.executeSql(sql);
+                        location.reload();
+                    })
+                },
+                showEdit: function (v) {
+                    this.obj = {
+                        id: v.id,
+                        place: v.place,
+                        username: v.username,
+                        password: v.password
+                    };
+                    this.editshow = true;
+                    console.log(v)
+                }
+            }
+        });
+
+        //查找数据
+        db.transaction(function (tx) {
+            tx.executeSql('CREATE TABLE IF NOT EXISTS SERCET (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, place CHAR(50), username CHAR(50), password CHAR(50), NOTE TEXT)');
+
+            // tx.executeSql('INSERT INTO SERCET (place, username, password) VALUES ("aaa", "aaa", "aaa")');
+
+            tx.executeSql('SELECT * FROM SERCET', [], function (tx, results) {
+                var len = results.rows.length, i;
+                app.items = []
+                for (i = 0; i < len; i++) {
+                    // alert(results.rows.item(i).name);
+                    // console.log(results.rows.item(i))
+                    var o = {
+                        'id': results.rows.item(i).id,
+                        'place': results.rows.item(i).place,
+                        'username': results.rows.item(i).username,
+                        'password': results.rows.item(i).password
+                    }
+                    console.log(o)
+                    app.items.push(o)
+                }
+            }, null);
+        });
+
+    </script>
+</body>
+
+</html>
