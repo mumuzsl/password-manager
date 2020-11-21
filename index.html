@@ -84,7 +84,7 @@
     <div class="container">
         <!-- <input type="text" class="search" id="value" placeholder="输入账号"> -->
         <div id="app">
-            <search-box v-on:up-date="update"></search-box>
+            <search-box v-on:up-date="search"></search-box>
             <input placeholder="请输入使用该账号的地方" v-model="place">
             <input placeholder="请输入用户名" v-model="username">
             <input placeholder="请输入密码" v-model="password">
@@ -196,8 +196,26 @@
                 },
             },
             methods: {
-                update: function (v) {
-
+                search: function (v) {
+                    var sql = 'SELECT * FROM SERCET WHERE place like "%' + v + '%"';
+                    db.transaction(function (tx) {
+                        tx.executeSql(sql, [], function (tx, results) {
+                            var len = results.rows.length, i;
+                            app.items = []
+                            for (i = 0; i < len; i++) {
+                                // alert(results.rows.item(i).name);
+                                // console.log(results.rows.item(i))
+                                var o = {
+                                    'id': results.rows.item(i).id,
+                                    'place': results.rows.item(i).place,
+                                    'username': results.rows.item(i).username,
+                                    'password': results.rows.item(i).password
+                                }
+                                console.log(o)
+                                app.items.push(o)
+                            }
+                        }, null);
+                    })
                 },
                 add: function () {
                     // alert(this.place + this.username + this.password);
