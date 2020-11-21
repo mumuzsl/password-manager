@@ -88,7 +88,7 @@
             <input placeholder="请输入使用该账号的地方" v-model="place">
             <input placeholder="请输入用户名" v-model="username">
             <input placeholder="请输入密码" v-model="password">
-            <button @click="add">确定</button>
+            <button @click="add">添加</button>
             <button @click="del">删除</button>
             <edit-layer v-on:yes="handleEdit" v-on:no="editshow = false" :obj="obj" v-if="editshow"></edit-layer>
             <table class=" table">

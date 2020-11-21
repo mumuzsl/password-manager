@@ -146,7 +146,7 @@ function createWindow() {
 
   win.loadFile('index.html')
   // 打开开发人员工具
-  win.webContents.openDevTools()
+  // win.webContents.openDevTools()
 }
 
 app.whenReady().then(createWindow)

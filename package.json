@@ -3,12 +3,14 @@
   "version": "0.1.0",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "package": "electron-packager . PasswordManager --platform=win32 --arch=x64 --out=./dist --asar --app-version=0.1.0 --overwrite --download.mirrorOptions.mirror=https://npm.taobao.org/mirrors/electron/"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^11.0.2"
+    "electron": "^11.0.2",
+    "electron-packager": "^15.1.0"
   }
 }
